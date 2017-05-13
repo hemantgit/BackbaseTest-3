@@ -7,13 +7,7 @@
     android:divider="?android:attr/dividerHorizontal"
     android:orientation="horizontal"
     android:showDividers="middle"
-    tools:context="com.zeyad.backbase.screens.location_list.EmptyViewHolder$LocationListActivity">
-
-    <!--
-    This layout is a two-pane layout for the locatoins
-    master/detail flow.
-    
-    -->
+    tools:context="com.zeyad.backbase.screens.location_list.LocationListActivity">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="@dimen/item_width"
@@ -31,15 +25,15 @@
             tools:context="com.zeyad.backbase.screens.location_list.HomeActivity" />
 
         <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_locations"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="0.5" />
     </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/locatoin_detail_container"
+        android:id="@+id/location_detail_container"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="3" />
-
 </LinearLayout>

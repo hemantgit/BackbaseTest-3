@@ -5,6 +5,9 @@ package com.zeyad.backbase.utils;
  */
 public class Constants {
 
+    public static final String BOOKMARKS_KEY = "bookmarks_key";
+    public static final String PREFS_FILE_NAME = "com.zeyad.backbase.PREFS";
+
     public static class URLS {
         public static final String API_BASE_URL = "  http://openweathermap.org/";
         public static final String TODAY = "data/2.5/forecast?lat=%s&lon=%s&appid=%s&units=%s";

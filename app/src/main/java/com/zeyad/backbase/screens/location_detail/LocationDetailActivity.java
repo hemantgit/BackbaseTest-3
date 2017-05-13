@@ -11,7 +11,7 @@ import com.zeyad.backbase.R;
 import com.zeyad.backbase.screens.location_list.LocationListActivity;
 
 /**
- * An activity representing a single locatoin detail screen. This
+ * An activity representing a single location detail screen. This
  * activity is only used narrow width devices. On tablet-size devices,
  * item details are presented side-by-side with a list of items
  * in a {@link LocationListActivity}.
@@ -22,7 +22,7 @@ public class LocationDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_locatoin_detail);
+        setContentView(R.layout.activity_location_detail);
         toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
@@ -37,7 +37,7 @@ public class LocationDetailActivity extends AppCompatActivity {
             LocationDetailFragment fragment = new LocationDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.locatoin_detail_container, fragment)
+                    .add(R.id.location_detail_container, fragment)
                     .commit();
         }
     }

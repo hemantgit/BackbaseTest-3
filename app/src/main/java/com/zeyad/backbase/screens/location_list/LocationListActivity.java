@@ -1,19 +1,23 @@
 package com.zeyad.backbase.screens.location_list;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.zeyad.backbase.R;
 import com.zeyad.backbase.adapter.GenericRecyclerViewAdapter;
@@ -23,17 +27,21 @@ import com.zeyad.backbase.screens.location_detail.LocationDetailActivity;
 import com.zeyad.backbase.screens.location_detail.LocationDetailFragment;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import static com.google.android.gms.maps.GoogleMap.OnMapClickListener;
+import static com.zeyad.backbase.utils.Constants.PREFS_FILE_NAME;
 
 /**
- * An activity representing a list of locatoins. This activity
+ * An activity representing a list of locations. This activity
  * has different presentations for handset and tablet-size devices. On
  * handsets, the activity presents a list of items, which when touched,
  * lead to a {@link LocationDetailActivity} representing
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class LocationListActivity extends BaseActivity<BookMark[]> implements OnMapReadyCallback {
-    private static final String TAG = "MyTag";
+public class LocationListActivity extends BaseActivity<Bookmark[]> implements OnMapReadyCallback,
+        OnMarkerClickListener, OnMapClickListener {
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -41,13 +49,23 @@ public class LocationListActivity extends BaseActivity<BookMark[]> implements On
     private boolean mTwoPane;
     private GoogleMap mMap;
     private GenericRecyclerViewAdapter locationsAdapter;
-    private RecyclerView locationRecyclerView;
+    private RecyclerView rvLocation;
     private LocationListPresenter locationListPresenter;
     private Toolbar toolbar;
+    private ProgressDialog progressDialog;
+    List<Marker> markers;
+    private SharedPreferences sharedPreferences;
 
     @Override
     public void initialize() {
-        locationListPresenter = new LocationListPresenter();
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setTitle(R.string.loading);
+        progressDialog.setMessage(getString(R.string.please_wait));
+        progressDialog.setIndeterminate(true);
+        locationListPresenter = new LocationListPresenter(gson);
+        markers = new ArrayList<>();
+        sharedPreferences = getSharedPreferences(PREFS_FILE_NAME, 0);
     }
 
     @Override
@@ -56,18 +74,21 @@ public class LocationListActivity extends BaseActivity<BookMark[]> implements On
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
+        rvLocation = (RecyclerView) findViewById(R.id.rv_locations);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         setupRecyclerView();
-        if (findViewById(R.id.locatoin_detail_container) != null) {
+        if (findViewById(R.id.location_detail_container) != null) {
             mTwoPane = true;
         }
     }
 
     @Override
     public void loadData() {
-        locationListPresenter.getBookMarkedLocations();
+        toggleViews(true);
+        renderState(locationListPresenter.getBookMarkedLocationsArray(sharedPreferences));
+        toggleViews(false);
     }
 
     private void setupRecyclerView() {
@@ -90,30 +111,32 @@ public class LocationListActivity extends BaseActivity<BookMark[]> implements On
         locationsAdapter.setOnItemClickListener(new GenericRecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClicked(int position, ItemInfo itemInfo, GenericRecyclerViewAdapter.ViewHolder holder) {
-                if (mTwoPane) {
-                    Bundle arguments = new Bundle();
-                    arguments.putDouble(LocationDetailFragment.LAT, 0);
-                    arguments.putDouble(LocationDetailFragment.LNG, 0);
-                    arguments.putBoolean(LocationDetailFragment.TWO_PANE, mTwoPane);
-                    LocationDetailFragment fragment = new LocationDetailFragment();
-                    fragment.setArguments(arguments);
-                    addFragment(R.id.locatoin_detail_container, fragment, fragment.getTag(), null);
-                } else {
-                    Context context = holder.itemView.getContext();
-                    Intent intent = new Intent(context, LocationDetailActivity.class);
-                    intent.putExtra(LocationDetailFragment.LAT, 0);
-                    intent.putExtra(LocationDetailFragment.LNG, 0);
-                    intent.putExtra(LocationDetailFragment.TWO_PANE, mTwoPane);
-                    context.startActivity(intent);
-                }
+                openLocationDetail((LatLng) itemInfo.getData());
             }
         });
         locationsAdapter.setAreItemsClickable(true);
         locationsAdapter.setAllowSelection(true);
-        locationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        locationRecyclerView.setAdapter(locationsAdapter);
+        rvLocation.setLayoutManager(new LinearLayoutManager(this));
+        rvLocation.setAdapter(locationsAdapter);
     }
 
+    private void openLocationDetail(LatLng latLng) {
+        if (mTwoPane) {
+            Bundle arguments = new Bundle();
+            arguments.putDouble(LocationDetailFragment.LAT, latLng.latitude);
+            arguments.putDouble(LocationDetailFragment.LNG, latLng.longitude);
+            arguments.putBoolean(LocationDetailFragment.TWO_PANE, mTwoPane);
+            LocationDetailFragment fragment = new LocationDetailFragment();
+            fragment.setArguments(arguments);
+            addFragment(R.id.location_detail_container, fragment, fragment.getTag(), null);
+        } else {
+            Intent intent = new Intent(this, LocationDetailActivity.class);
+            intent.putExtra(LocationDetailFragment.LAT, latLng.latitude);
+            intent.putExtra(LocationDetailFragment.LNG, latLng.longitude);
+            intent.putExtra(LocationDetailFragment.TWO_PANE, mTwoPane);
+            navigator.navigateTo(this, intent);
+        }
+    }
 
     /**
      * Manipulates the map once available.
@@ -127,25 +150,52 @@ public class LocationListActivity extends BaseActivity<BookMark[]> implements On
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mMap.setOnMapClickListener(this);
+        mMap.setOnMarkerClickListener(this);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
     }
 
     @Override
-    public void renderState(BookMark[] bookMarks) {
+    public void onMapClick(LatLng latLng) {
+        Marker marker = mMap.addMarker(new MarkerOptions().position(latLng));
+        marker.setTag(latLng.toString());
+        locationListPresenter.bookmarkLocation(sharedPreferences, latLng, latLng.toString());
+        markers.add(marker);
+        if (locationsAdapter.getFirstItem().getId() == R.layout.location_item_layout)
+            locationsAdapter.removeItem(0);
+        locationsAdapter.appendItem(new ItemInfo<>(new Bookmark(latLng, latLng.toString()),
+                R.layout.location_item_layout));
+    }
 
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        openLocationDetail(marker.getPosition());
+        return false;
+    }
+
+    @Override
+    public void renderState(Bookmark[] bookmarks) {
+        for (Bookmark bookMark : bookmarks) {
+            locationsAdapter.appendItem(new ItemInfo<>(bookMark, R.layout.location_item_layout));
+            markers.add(mMap.addMarker(new MarkerOptions()
+                    .title(bookMark.getName())
+                    .position(bookMark.getLatLng())));
+        }
+        if (locationsAdapter.getItemCount() == 0)
+            locationsAdapter.appendItem(new ItemInfo<>(null, R.layout.empty_view));
     }
 
     @Override
     public void toggleViews(boolean toggle) {
-
+        if (toggle)
+            progressDialog.show();
+        else
+            progressDialog.dismiss();
     }
 
     @Override
     public void showError(String message) {
-
+        showErrorSnackBar(message, toolbar, Snackbar.LENGTH_LONG);
     }
 
     public Toolbar getToolbar() {

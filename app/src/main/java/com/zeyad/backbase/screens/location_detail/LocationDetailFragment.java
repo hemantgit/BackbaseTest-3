@@ -21,7 +21,7 @@ import com.zeyad.backbase.utils.Utils;
 import static android.content.ContentValues.TAG;
 
 /**
- * A fragment representing a single locatoin detail screen.
+ * A fragment representing a single location detail screen.
  * This fragment is either contained in a {@link LocationListActivity}
  * in two-pane mode (on tablets) or a {@link LocationDetailActivity}
  * on handsets.
