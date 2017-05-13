@@ -2,9 +2,7 @@ package com.zeyad.backbase.screens.location_list;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,7 +25,6 @@ import com.zeyad.backbase.screens.location_detail.LocationDetailActivity;
 import com.zeyad.backbase.screens.location_detail.LocationDetailFragment;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import static com.zeyad.backbase.utils.Constants.PREFS_FILE_NAME;
@@ -53,7 +50,6 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
     private LocationListPresenter locationListPresenter;
     private Toolbar toolbar;
     private ProgressDialog progressDialog;
-    List<Marker> markers;
     private SharedPreferences sharedPreferences;
 
     @Override
@@ -64,7 +60,6 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
         progressDialog.setMessage(getString(R.string.please_wait));
         progressDialog.setIndeterminate(true);
         locationListPresenter = new LocationListPresenter(gson);
-        markers = new ArrayList<>();
         sharedPreferences = getSharedPreferences(PREFS_FILE_NAME, 0);
     }
 
@@ -111,7 +106,7 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
         locationsAdapter.setOnItemClickListener(new GenericRecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClicked(int position, ItemInfo itemInfo, GenericRecyclerViewAdapter.ViewHolder holder) {
-                openLocationDetail((LatLng) itemInfo.getData());
+                openLocationDetail(((Bookmark) itemInfo.getData()).getLatLng());
             }
         });
         locationsAdapter.setAreItemsClickable(true);
@@ -122,19 +117,11 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
 
     private void openLocationDetail(LatLng latLng) {
         if (mTwoPane) {
-            Bundle arguments = new Bundle();
-            arguments.putDouble(LocationDetailFragment.LAT, latLng.latitude);
-            arguments.putDouble(LocationDetailFragment.LNG, latLng.longitude);
-            arguments.putBoolean(LocationDetailFragment.TWO_PANE, mTwoPane);
-            LocationDetailFragment fragment = new LocationDetailFragment();
-            fragment.setArguments(arguments);
+            LocationDetailFragment fragment = LocationDetailFragment
+                    .newInstance(new LatLng(latLng.latitude, latLng.longitude));
             addFragment(R.id.location_detail_container, fragment, fragment.getTag(), null);
         } else {
-            Intent intent = new Intent(this, LocationDetailActivity.class);
-            intent.putExtra(LocationDetailFragment.LAT, latLng.latitude);
-            intent.putExtra(LocationDetailFragment.LNG, latLng.longitude);
-            intent.putExtra(LocationDetailFragment.TWO_PANE, mTwoPane);
-            navigator.navigateTo(this, intent);
+            navigator.navigateTo(this, LocationDetailActivity.getCallingIntent(this, latLng));
         }
     }
 
@@ -160,8 +147,7 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
         Marker marker = mMap.addMarker(new MarkerOptions().position(latLng));
         marker.setTag(latLng.toString());
         locationListPresenter.bookmarkLocation(sharedPreferences, latLng, latLng.toString());
-        markers.add(marker);
-        if (locationsAdapter.getFirstItem().getId() == R.layout.location_item_layout)
+        if (locationsAdapter.getFirstItem().getLayoutId() == R.layout.empty_view)
             locationsAdapter.removeItem(0);
         locationsAdapter.appendItem(new ItemInfo<>(new Bookmark(latLng, latLng.toString()),
                 R.layout.location_item_layout));
@@ -177,9 +163,9 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
     public void renderState(Bookmark[] bookmarks) {
         for (Bookmark bookMark : bookmarks) {
             locationsAdapter.appendItem(new ItemInfo<>(bookMark, R.layout.location_item_layout));
-            markers.add(mMap.addMarker(new MarkerOptions()
+            mMap.addMarker(new MarkerOptions()
                     .title(bookMark.getName())
-                    .position(bookMark.getLatLng())));
+                    .position(bookMark.getLatLng()));
         }
         if (locationsAdapter.getItemCount() == 0)
             locationsAdapter.appendItem(new ItemInfo<>(null, R.layout.empty_view));
@@ -196,9 +182,5 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
     @Override
     public void showError(String message) {
         showErrorSnackBar(message, toolbar, Snackbar.LENGTH_LONG);
-    }
-
-    public Toolbar getToolbar() {
-        return toolbar;
     }
 }

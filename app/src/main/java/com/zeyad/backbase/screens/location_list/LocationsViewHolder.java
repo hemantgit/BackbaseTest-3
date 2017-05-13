@@ -13,8 +13,8 @@ import com.zeyad.backbase.adapter.GenericRecyclerViewAdapter;
 
 public class LocationsViewHolder extends GenericRecyclerViewAdapter.ViewHolder {
 
-    TextView tvLocationName;
-    ImageView ivDelete;
+    private TextView tvLocationName;
+    private ImageView ivDelete;
 
     public LocationsViewHolder(View view) {
         super(view);
@@ -24,8 +24,9 @@ public class LocationsViewHolder extends GenericRecyclerViewAdapter.ViewHolder {
 
     @Override
     public void bindData(Object data, boolean isItemSelected, int position, boolean isEnabled) {
-        if (data instanceof String) {
-            tvLocationName.setText(String.valueOf(data));
+        if (data instanceof Bookmark) {
+            Bookmark bookmark = (Bookmark) data;
+            tvLocationName.setText(bookmark.getName());
         }
         ivDelete.setOnClickListener(new View.OnClickListener() {
             @Override

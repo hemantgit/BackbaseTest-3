@@ -27,7 +27,7 @@ public class Main {
     private Float grndLevel;
     @SerializedName("humidity")
     @Expose
-    private Integer humidity;
+    private Float humidity;
     @SerializedName("temp_kf")
     @Expose
     private Integer tempKf;
@@ -80,11 +80,11 @@ public class Main {
         this.grndLevel = grndLevel;
     }
 
-    public Integer getHumidity() {
+    public Float getHumidity() {
         return humidity;
     }
 
-    public void setHumidity(Integer humidity) {
+    public void setHumidity(Float humidity) {
         this.humidity = humidity;
     }
 

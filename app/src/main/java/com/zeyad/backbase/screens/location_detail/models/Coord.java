@@ -10,24 +10,24 @@ import com.google.gson.annotations.SerializedName;
 class Coord {
     @SerializedName("lon")
     @Expose
-    private Integer lon;
+    private Double lon;
     @SerializedName("lat")
     @Expose
-    private Integer lat;
+    private Double lat;
 
-    public Integer getLon() {
+    public Double getLon() {
         return lon;
     }
 
-    public void setLon(Integer lon) {
+    public void setLon(Double lon) {
         this.lon = lon;
     }
 
-    public Integer getLat() {
+    public Double getLat() {
         return lat;
     }
 
-    public void setLat(Integer lat) {
+    public void setLat(Double lat) {
         this.lat = lat;
     }
 }

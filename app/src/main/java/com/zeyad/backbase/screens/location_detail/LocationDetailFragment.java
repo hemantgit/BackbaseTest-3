@@ -1,5 +1,6 @@
 package com.zeyad.backbase.screens.location_detail;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
@@ -31,11 +32,11 @@ public class LocationDetailFragment extends BaseFragment<Forecast> {
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
-    public static final String LAT = "lat", LNG = "lng", TWO_PANE = "twoPane";
+    public static final String LAT = "lat", LNG = "lng";
     private LocationDetailPresenter locationDetailPresenter;
     private RequestQueue requestQueue;
     private LatLng latLng;
-    private boolean isTwoPane;
+    private ProgressDialog progressDialog;
     private TextView mFriendlyDate;
     private TextView mDate;
     private TextView mDescription;
@@ -52,43 +53,27 @@ public class LocationDetailFragment extends BaseFragment<Forecast> {
     public LocationDetailFragment() {
     }
 
-    public static LocationDetailFragment newInstance(LatLng latLng, boolean isTwoPane) {
+    public static LocationDetailFragment newInstance(LatLng latLng) {
         LocationDetailFragment locationDetailFragment = new LocationDetailFragment();
         Bundle bundle = new Bundle();
         bundle.putDouble(LAT, latLng.latitude);
         bundle.putDouble(LNG, latLng.longitude);
-        bundle.putBoolean(TWO_PANE, isTwoPane);
         locationDetailFragment.setArguments(bundle);
         return locationDetailFragment;
     }
 
     @Override
     public void initialize() {
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setTitle(R.string.loading);
+        progressDialog.setMessage(getString(R.string.please_wait));
+        progressDialog.setIndeterminate(true);
         Bundle arguments = getArguments();
         if (arguments != null) {
-            isTwoPane = arguments.getBoolean(TWO_PANE);
             latLng = new LatLng(arguments.getDouble(LAT, 0), arguments.getDouble(LNG, 0));
         }
         locationDetailPresenter = new LocationDetailPresenter();
-    }
-
-    @Override
-    public void loadData() {
-        requestQueue = Volley.newRequestQueue(getContext());
-        toggleViews(true);
-        locationDetailPresenter.getForecast(latLng.latitude, latLng.longitude, requestQueue, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                toggleViews(false);
-                renderState(gson.fromJson(response, Forecast.class));
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                toggleViews(false);
-                showError(error.getLocalizedMessage());
-            }
-        }, TAG);
     }
 
     @Override
@@ -106,14 +91,28 @@ public class LocationDetailFragment extends BaseFragment<Forecast> {
     }
 
     @Override
+    public void loadData() {
+        requestQueue = Volley.newRequestQueue(getContext());
+        toggleViews(true);
+        locationDetailPresenter.getWeather(latLng.latitude, latLng.longitude,
+                Utils.isMetric(getContext()) ? getString(R.string.metric) : getString(R.string.imperial),
+                requestQueue, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        toggleViews(false);
+                        renderState(gson.fromJson(response, Forecast.class));
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        toggleViews(false);
+                        showError(error.getLocalizedMessage());
+                    }
+                }, TAG);
+    }
+
+    @Override
     public void renderState(Forecast forecast) {
-        if (isTwoPane) {
-            LocationListActivity locationListActivity = (LocationListActivity) getActivity();
-            locationListActivity.getToolbar().setTitle(forecast.getName());
-        } else {
-            LocationDetailActivity locationDetailActivity = (LocationDetailActivity) getActivity();
-            locationDetailActivity.getToolbar().setTitle(forecast.getName());
-        }
         long date = forecast.getDt();
         mFriendlyDate.setText(Utils.getDayName(getContext(), date));
         mDate.setText(Utils.getFormattedMonthDay(date));
@@ -121,13 +120,17 @@ public class LocationDetailFragment extends BaseFragment<Forecast> {
         mHighTemp.setText(Utils.formatTemperature(getContext(), forecast.getMain().getTempMax()));
         mLowTemp.setText(Utils.formatTemperature(getContext(), forecast.getMain().getTempMin()));
         mHumidity.setText(getContext().getString(R.string.format_humidity, forecast.getMain().getHumidity()));
-        mWind.setText(Utils.getFormattedWind(getContext(), forecast.getWind().getSpeed(), forecast.getWind().getDeg()));
+        mWind.setText(Utils.getFormattedWind(getContext(), forecast.getWind().getSpeed(),
+                forecast.getWind().getDeg()));
         mPressure.setText(getContext().getString(R.string.format_pressure, forecast.getMain().getPressure()));
     }
 
     @Override
     public void toggleViews(boolean toggle) {
-
+        if (toggle)
+            progressDialog.show();
+        else
+            progressDialog.dismiss();
     }
 
     @Override
