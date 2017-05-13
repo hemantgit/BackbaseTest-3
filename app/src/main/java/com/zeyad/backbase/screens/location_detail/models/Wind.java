@@ -6,8 +6,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * @author by ZIaDo on 5/12/17.
  */
-
-class Wind {
+public class Wind {
     @SerializedName("speed")
     @Expose
     private Float speed;

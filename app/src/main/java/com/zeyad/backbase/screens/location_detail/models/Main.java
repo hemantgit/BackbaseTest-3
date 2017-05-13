@@ -6,8 +6,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * @author by ZIaDo on 5/12/17.
  */
-
-class Main {
+public class Main {
     @SerializedName("temp")
     @Expose
     private Float temp;

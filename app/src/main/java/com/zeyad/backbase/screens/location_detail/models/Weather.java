@@ -6,8 +6,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * @author by ZIaDo on 5/12/17.
  */
-
-class Weather {
+public class Weather {
     @SerializedName("id")
     @Expose
     private Integer id;

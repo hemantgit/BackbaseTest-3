@@ -1,9 +1,5 @@
 package com.zeyad.backbase.screens.location_list;
 
-/**
- * @author by ZIaDo on 5/11/17.
- */
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -36,7 +32,7 @@ import java.util.ArrayList;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class LocationListActivity extends BaseActivity<LocationState> implements OnMapReadyCallback {
+public class LocationListActivity extends BaseActivity<BookMark[]> implements OnMapReadyCallback {
     private static final String TAG = "MyTag";
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -47,6 +43,7 @@ public class LocationListActivity extends BaseActivity<LocationState> implements
     private GenericRecyclerViewAdapter locationsAdapter;
     private RecyclerView locationRecyclerView;
     private LocationListPresenter locationListPresenter;
+    private Toolbar toolbar;
 
     @Override
     public void initialize() {
@@ -56,29 +53,21 @@ public class LocationListActivity extends BaseActivity<LocationState> implements
     @Override
     public void setupUI() {
         setContentView(R.layout.activity_location_list);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
         setupRecyclerView();
-
         if (findViewById(R.id.locatoin_detail_container) != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
             mTwoPane = true;
         }
     }
 
     @Override
     public void loadData() {
-
+        locationListPresenter.getBookMarkedLocations();
     }
 
     private void setupRecyclerView() {
@@ -103,16 +92,18 @@ public class LocationListActivity extends BaseActivity<LocationState> implements
             public void onItemClicked(int position, ItemInfo itemInfo, GenericRecyclerViewAdapter.ViewHolder holder) {
                 if (mTwoPane) {
                     Bundle arguments = new Bundle();
-                    arguments.putLong(LocationDetailFragment.ARG_ITEM_ID, itemInfo.getId());
+                    arguments.putDouble(LocationDetailFragment.LAT, 0);
+                    arguments.putDouble(LocationDetailFragment.LNG, 0);
+                    arguments.putBoolean(LocationDetailFragment.TWO_PANE, mTwoPane);
                     LocationDetailFragment fragment = new LocationDetailFragment();
                     fragment.setArguments(arguments);
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.locatoin_detail_container, fragment)
-                            .commit();
+                    addFragment(R.id.locatoin_detail_container, fragment, fragment.getTag(), null);
                 } else {
                     Context context = holder.itemView.getContext();
                     Intent intent = new Intent(context, LocationDetailActivity.class);
-                    intent.putExtra(LocationDetailFragment.ARG_ITEM_ID, itemInfo.getId());
+                    intent.putExtra(LocationDetailFragment.LAT, 0);
+                    intent.putExtra(LocationDetailFragment.LNG, 0);
+                    intent.putExtra(LocationDetailFragment.TWO_PANE, mTwoPane);
                     context.startActivity(intent);
                 }
             }
@@ -143,7 +134,7 @@ public class LocationListActivity extends BaseActivity<LocationState> implements
     }
 
     @Override
-    public void renderState(LocationState locationState) {
+    public void renderState(BookMark[] bookMarks) {
 
     }
 
@@ -155,5 +146,9 @@ public class LocationListActivity extends BaseActivity<LocationState> implements
     @Override
     public void showError(String message) {
 
+    }
+
+    public Toolbar getToolbar() {
+        return toolbar;
     }
 }

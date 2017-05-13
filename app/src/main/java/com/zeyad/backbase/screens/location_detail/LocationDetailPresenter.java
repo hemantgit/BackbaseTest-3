@@ -12,12 +12,11 @@ import static com.zeyad.backbase.utils.Constants.URLS.TODAY;
 /**
  * @author by ZIaDo on 5/11/17.
  */
+class LocationDetailPresenter {
 
-public class LocationDetailPresenter {
-
-    void getForecast(RequestQueue queue, Response.Listener<String> response, Response.ErrorListener error,
-                     String tag) {
-        String url = API_BASE_URL + String.format(TODAY, 0, 0, API_KEY, "metric");
+    void getForecast(double lat, double lng, RequestQueue queue, Response.Listener<String> response,
+                     Response.ErrorListener error, String tag) {
+        String url = API_BASE_URL + String.format(TODAY, lat, lng, API_KEY, "metric");
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, response, error);
         stringRequest.setTag(tag);
         queue.add(stringRequest);
