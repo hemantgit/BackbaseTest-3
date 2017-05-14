@@ -69,11 +69,12 @@ public class LocationDetailFragment extends BaseFragment<Forecast> {
         progressDialog.setTitle(R.string.loading);
         progressDialog.setMessage(getString(R.string.please_wait));
         progressDialog.setIndeterminate(true);
+        requestQueue = Volley.newRequestQueue(getContext());
         Bundle arguments = getArguments();
         if (arguments != null) {
             latLng = new LatLng(arguments.getDouble(LAT, 0), arguments.getDouble(LNG, 0));
         }
-        locationDetailPresenter = new LocationDetailPresenter();
+        locationDetailPresenter = new LocationDetailPresenter(requestQueue);
     }
 
     @Override
@@ -92,11 +93,9 @@ public class LocationDetailFragment extends BaseFragment<Forecast> {
 
     @Override
     public void loadData() {
-        requestQueue = Volley.newRequestQueue(getContext());
         toggleViews(true);
         locationDetailPresenter.getWeather(latLng.latitude, latLng.longitude,
-                Utils.isMetric(getContext()) ? getString(R.string.metric) : getString(R.string.imperial),
-                requestQueue, new Response.Listener<String>() {
+                Utils.isMetric(getContext()) ? getString(R.string.metric) : getString(R.string.imperial), new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         toggleViews(false);
