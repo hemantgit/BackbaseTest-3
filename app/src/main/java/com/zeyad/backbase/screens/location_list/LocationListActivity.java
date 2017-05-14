@@ -2,14 +2,19 @@ package com.zeyad.backbase.screens.location_list;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -23,11 +28,14 @@ import com.zeyad.backbase.adapter.ItemInfo;
 import com.zeyad.backbase.base.BaseActivity;
 import com.zeyad.backbase.screens.location_detail.LocationDetailActivity;
 import com.zeyad.backbase.screens.location_detail.LocationDetailFragment;
+import com.zeyad.backbase.screens.location_list.view_holder.EmptyViewHolder;
+import com.zeyad.backbase.screens.location_list.view_holder.LocationsViewHolder;
+import com.zeyad.backbase.screens.settings.SettingsActivity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.android.gms.maps.GoogleMap.OnMapClickListener;
-import static com.zeyad.backbase.utils.Constants.PREFS_FILE_NAME;
 
 /**
  * An activity representing a list of locations. This activity
@@ -51,6 +59,7 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
     private Toolbar toolbar;
     private ProgressDialog progressDialog;
     private SharedPreferences sharedPreferences;
+    private List<Marker> markers;
 
     @Override
     public void initialize() {
@@ -59,8 +68,9 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
         progressDialog.setTitle(R.string.loading);
         progressDialog.setMessage(getString(R.string.please_wait));
         progressDialog.setIndeterminate(true);
+        markers = new ArrayList<>();
         locationListPresenter = new LocationListPresenter(gson);
-        sharedPreferences = getSharedPreferences(PREFS_FILE_NAME, 0);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
     }
 
     @Override
@@ -109,6 +119,16 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
                 openLocationDetail(((Bookmark) itemInfo.getData()).getLatLng());
             }
         });
+        locationsAdapter.setOnItemLongClickListener(new GenericRecyclerViewAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClicked(int position, ItemInfo itemInfo, GenericRecyclerViewAdapter.ViewHolder holder) {
+                locationListPresenter.deleteBookmark(sharedPreferences, ((Bookmark) itemInfo.getData()).getName());
+                locationsAdapter.removeItem(position);
+                markers.get(position).remove();
+                markers.remove(position);
+                return false;
+            }
+        });
         locationsAdapter.setAreItemsClickable(true);
         locationsAdapter.setAllowSelection(true);
         rvLocation.setLayoutManager(new LinearLayoutManager(this));
@@ -140,6 +160,15 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
         mMap.setOnMapClickListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.getUiSettings().setZoomControlsEnabled(true);
+        if (markers.isEmpty() && viewState != null) {
+            for (Bookmark bookMark : viewState) {
+                markers.add(mMap.addMarker(new MarkerOptions()
+                        .title(bookMark.getName())
+                        .position(bookMark.getLatLng())));
+            }
+            if (!markers.isEmpty())
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markers.get(0).getPosition(), 10));
+        }
     }
 
     @Override
@@ -147,7 +176,7 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
         Marker marker = mMap.addMarker(new MarkerOptions().position(latLng));
         marker.setTag(latLng.toString());
         locationListPresenter.bookmarkLocation(sharedPreferences, latLng, latLng.toString());
-        if (locationsAdapter.getFirstItem().getLayoutId() == R.layout.empty_view)
+        if (locationsAdapter.getItemCount() > 0 && locationsAdapter.getFirstItem().getLayoutId() == R.layout.empty_view)
             locationsAdapter.removeItem(0);
         locationsAdapter.appendItem(new ItemInfo<>(new Bookmark(latLng, latLng.toString()),
                 R.layout.location_item_layout));
@@ -161,14 +190,37 @@ public class LocationListActivity extends BaseActivity<Bookmark[]> implements On
 
     @Override
     public void renderState(Bookmark[] bookmarks) {
+        viewState = bookmarks;
+        locationsAdapter.setDataList(new ArrayList<ItemInfo>());
         for (Bookmark bookMark : bookmarks) {
             locationsAdapter.appendItem(new ItemInfo<>(bookMark, R.layout.location_item_layout));
-            mMap.addMarker(new MarkerOptions()
-                    .title(bookMark.getName())
-                    .position(bookMark.getLatLng()));
+            if (mMap != null) {
+                markers.add(mMap.addMarker(new MarkerOptions()
+                        .title(bookMark.getName())
+                        .position(bookMark.getLatLng())));
+            }
         }
+        if (mMap != null)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markers.get(0).getPosition(), 5));
         if (locationsAdapter.getItemCount() == 0)
             locationsAdapter.appendItem(new ItemInfo<>(null, R.layout.empty_view));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.list_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.menu_prefs:
+                navigator.navigateTo(this, new Intent(this, SettingsActivity.class));
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

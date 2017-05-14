@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * @author by ZIaDo on 5/13/17.
  */
-class Bookmark implements Serializable {
+public class Bookmark implements Serializable {
     private final LatLng latLng;
     private final String name;
 

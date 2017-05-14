@@ -1,25 +1,22 @@
-package com.zeyad.backbase.screens.location_list;
+package com.zeyad.backbase.screens.location_list.view_holder;
 
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.zeyad.backbase.R;
 import com.zeyad.backbase.adapter.GenericRecyclerViewAdapter;
+import com.zeyad.backbase.screens.location_list.Bookmark;
 
 /**
  * @author by ZIaDo on 5/11/17.
  */
-
 public class LocationsViewHolder extends GenericRecyclerViewAdapter.ViewHolder {
 
     private TextView tvLocationName;
-    private ImageView ivDelete;
 
     public LocationsViewHolder(View view) {
         super(view);
         tvLocationName = (TextView) view.findViewById(R.id.tv_location_name);
-        ivDelete = (ImageView) view.findViewById(R.id.iv_delete);
     }
 
     @Override
@@ -28,12 +25,6 @@ public class LocationsViewHolder extends GenericRecyclerViewAdapter.ViewHolder {
             Bookmark bookmark = (Bookmark) data;
             tvLocationName.setText(bookmark.getName());
         }
-        ivDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
     }
 
     @Override

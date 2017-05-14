@@ -14,14 +14,13 @@ import com.zeyad.backbase.navigation.INavigator;
 import com.zeyad.backbase.navigation.NavigatorFactory;
 import com.zeyad.backbase.snackbar.SnackBarFactory;
 
-import java.io.Serializable;
 import java.util.List;
 
 
 /**
  * @author zeyad on 11/28/16.
  */
-public abstract class BaseActivity<S extends Serializable> extends AppCompatActivity implements LoadDataView<S> {
+public abstract class BaseActivity<S> extends AppCompatActivity implements LoadDataView<S> {
     public static final String UI_MODEL = "viewState";
     public INavigator navigator;
     public S viewState;
@@ -33,35 +32,8 @@ public abstract class BaseActivity<S extends Serializable> extends AppCompatActi
         navigator = NavigatorFactory.getInstance();
         gson = new Gson();
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
-        if (savedInstanceState != null)
-            viewState = (S) savedInstanceState.getSerializable(UI_MODEL);
         initialize();
         setupUI();
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState != null)
-            viewState = (S) savedInstanceState.getSerializable(UI_MODEL);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (outState != null)
-            outState.putAll(saveState());
-        super.onSaveInstanceState(outState);
-    }
-
-    /**
-     * To implement! Saves the viewState of the current view. Do not return null!
-     *
-     * @return {@link Bundle}
-     */
-    private Bundle saveState() {
-        Bundle bundle = new Bundle(1);
-        bundle.putSerializable(UI_MODEL, viewState);
-        return bundle;
     }
 
     @Override

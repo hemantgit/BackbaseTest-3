@@ -10,14 +10,10 @@ import com.zeyad.backbase.navigation.INavigator;
 import com.zeyad.backbase.navigation.NavigatorFactory;
 import com.zeyad.backbase.snackbar.SnackBarFactory;
 
-import java.io.Serializable;
-
-import static com.zeyad.backbase.base.BaseActivity.UI_MODEL;
-
 /**
  * @author zeyad on 11/28/16.
  */
-public abstract class BaseFragment<S extends Serializable> extends Fragment implements LoadDataView<S> {
+public abstract class BaseFragment<S> extends Fragment implements LoadDataView<S> {
 
     public INavigator navigator;
     public Gson gson;
@@ -33,27 +29,7 @@ public abstract class BaseFragment<S extends Serializable> extends Fragment impl
         setRetainInstance(true);
         navigator = NavigatorFactory.getInstance();
         gson = new Gson();
-        if (savedInstanceState != null)
-            viewState = (S) savedInstanceState.getSerializable(UI_MODEL);
         initialize();
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        if (outState != null)
-            outState.putAll(saveState());
-        super.onSaveInstanceState(outState);
-    }
-
-    /**
-     * To implement! Saves the viewState of the current view. Do not return null!
-     *
-     * @return {@link Bundle}
-     */
-    private Bundle saveState() {
-        Bundle bundle = new Bundle(1);
-        bundle.putSerializable(UI_MODEL, viewState);
-        return bundle;
     }
 
     @Override

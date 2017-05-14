@@ -21,7 +21,7 @@ class LocationListPresenter {
         this.gson = gson;
     }
 
-    List<Bookmark> getBookMarkedLocations(SharedPreferences sharedPreferences) {
+    private List<Bookmark> getBookMarkedLocations(SharedPreferences sharedPreferences) {
         return ((List<Bookmark>) gson.fromJson(sharedPreferences.getString(Constants.BOOKMARKS_KEY, ""),
                 new TypeToken<List<Bookmark>>() {
                 }.getType()));
@@ -32,14 +32,30 @@ class LocationListPresenter {
         if (bookmarks == null)
             bookmarks = new ArrayList<>();
         bookmarks.add(new Bookmark(latLng, name));
-        sharedPreferences.edit().putString(Constants.BOOKMARKS_KEY, gson.toJson(bookmarks)).apply();
+        applyBookmarksToPrefs(sharedPreferences, bookmarks);
     }
 
     Bookmark[] getBookMarkedLocationsArray(SharedPreferences sharedPreferences) {
-        Bookmark[] bookmarks = new Bookmark[0];
         List<Bookmark> bookMarkedLocations = getBookMarkedLocations(sharedPreferences);
-        if (bookMarkedLocations != null)
+        Bookmark[] bookmarks = {};
+        if (bookMarkedLocations != null) {
+            bookmarks = new Bookmark[bookMarkedLocations.size()];
             bookMarkedLocations.toArray(bookmarks);
+        }
         return bookmarks;
+    }
+
+    void deleteBookmark(SharedPreferences sharedPreferences, String name) {
+        List<Bookmark> bookmarks = getBookMarkedLocations(sharedPreferences);
+        for (int i = 0, bookmarksSize = bookmarks.size(); i < bookmarksSize; i++) {
+            Bookmark bookmark = bookmarks.get(i);
+            if (bookmark.getName().equals(name))
+                bookmarks.remove(bookmark);
+        }
+        applyBookmarksToPrefs(sharedPreferences, bookmarks);
+    }
+
+    private void applyBookmarksToPrefs(SharedPreferences sharedPreferences, List<Bookmark> bookmarks) {
+        sharedPreferences.edit().putString(Constants.BOOKMARKS_KEY, gson.toJson(bookmarks)).apply();
     }
 }

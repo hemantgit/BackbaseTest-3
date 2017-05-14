@@ -3,13 +3,10 @@ package com.zeyad.backbase.screens.location_detail.models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import java.io.Serializable;
-
 /**
  * @author by ZIaDo on 5/12/17.
  */
-
-public class Forecast implements Serializable {
+public class Forecast {
     @SerializedName("coord")
     @Expose
     private Coord coord;
