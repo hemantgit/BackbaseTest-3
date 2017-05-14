@@ -11,7 +11,6 @@
         android:orientation="vertical"
         android:padding="@dimen/sixteen_dp">
 
-        <!-- Header: Day, Date -->
         <TextView
             android:id="@+id/tv_detail_day"
             android:layout_width="wrap_content"
@@ -27,10 +26,9 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-condensed"
             android:textColor="@color/grey_700"
-            tools:text="12/5/17"
-            android:textSize="@dimen/sixteen_sp" />
+            android:textSize="@dimen/sixteen_sp"
+            tools:text="12/5/17" />
 
-        <!-- Main content: high, low, art, weather state -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -49,8 +47,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-light"
-                    tools:text="Sunny"
-                    android:textSize="@dimen/ninety_six_sp" />
+                    android:textSize="@dimen/ninety_six_sp"
+                    tools:text="Sunny" />
 
                 <TextView
                     android:id="@+id/tv_detail_low"
@@ -58,8 +56,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:textColor="@color/grey_700"
-                    tools:text="Windy"
-                    android:textSize="@dimen/fourty_eight_sp" />
+                    android:textSize="@dimen/fourty_eight_sp"
+                    tools:text="Windy" />
             </LinearLayout>
 
             <LinearLayout
@@ -83,7 +81,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Humidity, wind, pressure -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
