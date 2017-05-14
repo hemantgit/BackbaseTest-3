@@ -84,4 +84,5 @@
     <string name="please_wait">Please wait…</string>
     <string name="metric">metric</string>
     <string name="imperial">imperial</string>
+    <string name="settings">Settings</string>
 </resources>
